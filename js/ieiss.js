@@ -536,7 +536,7 @@ async function carregarCamisetas() {
         const { data, error } = await supabase
             .from('camisetas')
             .select('*')
-            .order('created_at', { ascending: false });
+            .order('created_at', { ascending: true }); // ✅ CORREÇÃO: ordem crescente para mostrar mais antigo primeiro
         
         if (error) throw error;
         
