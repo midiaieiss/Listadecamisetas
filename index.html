@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Cadastro de Camisetas - Igreja EISS 2025</title>
+    <link rel="stylesheet" href="css/ieiss.css">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo-container">
+                <img src="imagens/logo-igreja.png" alt="Logo da Igreja" class="logo">
+                <div class="church-name">Igreja Evangélica Internacional Semente Santa</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Galeria de imagens -->
+    <div class="card gallery-section">
+        <h2>🖼️ GALERIA DE INFORMAÇÕES</h2>
+        <div class="gallery-container">
+            <button class="gallery-nav gallery-prev" id="galleryPrev" aria-label="Imagem anterior">‹</button>
+            <div class="gallery-wrapper">
+                <div class="gallery-track" id="galleryTrack">
+                    <div class="gallery-item">
+                        <img src="imagens/galeria/Modelo.jpeg" alt="MODELO DA CAMISETA" class="gallery-image" data-index="0">
+                        <div class="gallery-caption">MODELO DA CAMISETA</div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="imagens/galeria/Tamanhos-tradicionais.jpeg" alt="MEDIDAS DOS TAMANHOS NORMAIS" class="gallery-image" data-index="1">
+                        <div class="gallery-caption">MEDIDAS DOS TAMANHOS TRADICIONAIS</div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="imagens/galeria/Tamanhos-babylook.jpeg" alt="MEDIDAS DOS TAMANHOS BABY LOOK" class="gallery-image" data-index="2">
+                        <div class="gallery-caption">MEDIDAS DOS TAMANHOS BABY LOOK</div>
+                    </div>
+                    <div class="gallery-item">
+                        <img src="imagens/galeria/Pagamento.jpeg" alt="INFORMAÇÕES SOBRE O PARAMENTO" class="gallery-image" data-index="3">
+                        <div class="gallery-caption">INFORMAÇÕES SOBRE O PAGAMENTO</div>                   
+                    </div>                   
+                </div>
+            </div>
+            <button class="gallery-nav gallery-next" id="galleryNext" aria-label="Próxima imagem">›</button>
+        </div>
+        <div class="gallery-dots" id="galleryDots"></div>
+    </div>
+
+    <!-- REMOVER COMPLETAMENTE OS MODAIS DUPLICADOS -->
+    <!-- O modal será criado dinamicamente pelo JavaScript quando necessário -->
+
+    <div class="container">
+        <div class="header">
+            <h1>Sistema de Cadastro de Camisetas</h1>
+            <p>Igreja EISS - 2025</p>
+        </div>
+
+        <div class="content">
+            <!-- Estatísticas -->
+            <div class="stats">
+                <div class="stat-card">
+                    <div class="stat-number" id="totalRegistros">0</div>
+                    <div class="stat-label">Total de Registros</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="totalCamisetas">0</div>
+                    <div class="stat-label">Total de Camisetas</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number" id="tamanhoMaisComum">-</div>
+                    <div class="stat-label">Tamanho Mais Comum</div>
+                </div>
+            </div>
+
+            <!-- Formulário de Cadastro -->
+            <div class="form-section">
+                <h2 id="formTitle">Cadastrar Nova Camiseta</h2>
+                <form id="camisetaForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="nome">Nome:</label>
+                            <input type="text" id="nome" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="quantidade">Quantidade:</label>
+                            <input type="number" id="quantidade" name="quantidade" min="1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tamanho">Tamanho:</label>
+                            <select id="tamanho" name="tamanho" required>
+                                <option value="">Selecione o tamanho</option>
+                                <optgroup label="Camisetas Tradicionais">
+                                    <option value="PP">PP</option>
+                                    <option value="P">P</option>
+                                    <option value="M">M</option>
+                                    <option value="G">G</option>
+                                    <option value="GG">GG</option>
+                                    <option value="XG">XG</option>
+                                    <option value="XXG">XXG</option>
+                                </optgroup>
+                                <optgroup label="Baby Look">
+                                    <option value="PP - Baby Look">PP - Baby Look</option>
+                                    <option value="P - Baby Look">P - Baby Look</option>
+                                    <option value="M - Baby Look">M - Baby Look</option>
+                                    <option value="G - Baby Look">G - Baby Look</option>
+                                    <option value="GG - Baby Look">GG - Baby Look</option>
+                                    <option value="EXGG - Baby Look">EXGG - Baby Look</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button type="submit" class="btn btn-primary" id="submitBtn">Cadastrar</button>
+                        <button type="button" class="btn btn-secondary" id="cancelBtn" style="display: none;">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Tabela de Camisetas -->
+            <div class="table-section">
+                <div class="table-header">
+                    <h2>Lista de Camisetas Cadastradas</h2>
+                    <div class="download-buttons">
+                        <button class="btn btn-success" id="downloadPdfBtn">
+                            📄 Baixar PDF
+                        </button>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="camisetasTable">
+                        <thead>
+                            <tr>
+                                <th>Nº</th>
+                                <th>Nome</th>
+                                <th>Quantidade</th>
+                                <th>Tamanho</th>
+                                <th>Data Cadastro</th>
+                                <th>Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody">
+                            <!-- Registros serão inseridos aqui dinamicamente -->
+                        </tbody>
+                    </table>
+                    <div id="emptyState" class="empty-state">
+                        <div style="font-size: 4em; margin-bottom: 20px;">👕</div>
+                        <h3>Nenhuma camiseta cadastrada ainda</h3>
+                        <p>Use o formulário acima para adicionar o primeiro registro.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner"></div>
+        <p>Carregando...</p>
+    </div>
+
+    <script src="js/ieiss.js"></script>
+</body>
+</html>
