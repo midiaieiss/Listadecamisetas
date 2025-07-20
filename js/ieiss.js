@@ -368,35 +368,6 @@ function collectGalleryImages(galleryItems) {
 }
 
 /**
- * Configurar cliques nas imagens da galeria
- */
-function setupGalleryImageClicks(galleryItems) {
-    galleryItems.forEach((item, index) => {
-        const img = item.querySelector('.gallery-image');
-        
-        img.style.cursor = 'zoom-in';
-        img.addEventListener('click', (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            openGalleryModal(index);
-        });
-        
-        // Remover os efeitos de hover que interferem com o modal
-        img.addEventListener('mouseenter', () => {
-            if (!isModalOpen) {
-                img.style.transform = 'scale(1.05)';
-            }
-        });
-        
-        img.addEventListener('mouseleave', () => {
-            if (!isModalOpen) {
-                img.style.transform = 'scale(1)';
-            }
-        });
-    });
-}
-
-/**
  * Criar dots de navegação da galeria
  */
 function createGalleryDots(container, totalItems) {
@@ -724,51 +695,94 @@ async function excluirCamiseta(id) {
     }
 }
 
-// Função para gerar PDF
-function downloadPDF() {
+// Função auxiliar para carregar imagem como base64
+async function loadImageAsBase64(imgElement) {
+    return new Promise((resolve, reject) => {
+        if (!imgElement || !imgElement.complete || imgElement.naturalWidth === 0) {
+            resolve(null);
+            return;
+        }
+
+        try {
+            // Criar nova imagem para garantir cross-origin
+            const img = new Image();
+            img.crossOrigin = 'anonymous';
+            
+            img.onload = function() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    canvas.width = this.naturalWidth;
+                    canvas.height = this.naturalHeight;
+                    
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(this, 0, 0);
+                    
+                    const base64 = canvas.toDataURL('image/png');
+                    resolve(base64);
+                } catch (error) {
+                    console.warn('Erro ao converter imagem para base64:', error);
+                    resolve(null);
+                }
+            };
+            
+            img.onerror = function() {
+                console.warn('Erro ao carregar imagem');
+                resolve(null);
+            };
+            
+            // Usar src da imagem original
+            img.src = imgElement.src;
+            
+        } catch (error) {
+            console.warn('Erro geral no carregamento da imagem:', error);
+            resolve(null);
+        }
+    });
+}
+
+// Função para gerar PDF - SUBSTITUIR A FUNÇÃO downloadPDF EXISTENTE
+async function downloadPDF() {
     if (camisetas.length === 0) {
         showNotification('Não há dados para exportar', 'error');
         return;
     }
     
     try {
+        showLoading(true); // Mostrar loading durante geração
+        
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         
-        // Configurações de cores (usando as cores do CSS)
+        // Configurações de cores
         const primaryGreen = [26, 76, 26];
         const accentYellow = [255, 221, 0];
         
         // Cabeçalho do PDF
         doc.setFillColor(...primaryGreen);
-        doc.rect(0, 0, 210, 55, 'F'); // Altura aumentada para caber logo + texto
+        doc.rect(0, 0, 210, 55, 'F');
 
+        // Carregar logo de forma assíncrona
         const imgElement = document.getElementById('logo-igreja-pdf');
+        const logoBase64 = await loadImageAsBase64(imgElement);
 
-        if (imgElement && imgElement.complete && imgElement.naturalWidth > 0) {
+        if (logoBase64) {
+            // Logo centralizada
+            const logoWidth = 25;
+            const logoHeight = 25;
+            const logoX = (210 - logoWidth) / 2;
+            const logoY = 5;
+
             try {
-                const canvas = document.createElement('canvas');
-                canvas.width = imgElement.naturalWidth;
-                canvas.height = imgElement.naturalHeight;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(imgElement, 0, 0);
-
-                const logoBase64 = canvas.toDataURL('image/png');
-
-                // Logo centralizada
-                const logoWidth = 25;
-                const logoHeight = 25;
-                const logoX = (210 - logoWidth) / 2;
-                const logoY = 5;
-
                 doc.addImage(logoBase64, 'PNG', logoX, logoY, logoWidth, logoHeight);
             } catch (err) {
-                console.warn('Erro ao processar a logo:', err);
+                console.warn('Erro ao adicionar logo no PDF:', err);
             }
+        } else {
+            console.warn('Logo não pôde ser carregada no PDF');
         }
 
         // Título e subtítulo
-        doc.setTextColor(255, 221, 0);
+        doc.setTextColor(...accentYellow);
         doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
         doc.text('Igreja Evangélica Internacional Semente Santa', 105, 35, { align: 'center' });
@@ -779,9 +793,7 @@ function downloadPDF() {
         doc.setFontSize(10);
         doc.text(`Relatório gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 105, 50, { align: 'center' });
 
-        // ==========================
-        // Estatísticas calculadas corretamente
-        // ==========================
+        // Estatísticas
         doc.setTextColor(...primaryGreen);
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
@@ -792,16 +804,17 @@ function downloadPDF() {
         const totalRegistros = camisetas.length;
         const totalCamisetas = camisetas.reduce((sum, item) => sum + item.quantidade, 0);
 
-        // Calcular tamanho mais comum corretamente
+        // Calcular tamanho mais comum
         const tamanhos = {};
         camisetas.forEach(item => {
             tamanhos[item.tamanho] = (tamanhos[item.tamanho] || 0) + item.quantidade;
         });
 
-        const tamanhoMaisComum = Object.keys(tamanhos).reduce((a, b) => 
-            tamanhos[a] > tamanhos[b] ? a : b, '-');
+        const tamanhoMaisComum = Object.keys(tamanhos).length > 0 
+            ? Object.keys(tamanhos).reduce((a, b) => tamanhos[a] > tamanhos[b] ? a : b)
+            : '-';
 
-        // Texto das estatísticas no PDF
+        // Estatísticas no PDF
         doc.text(`• Total de Registros: ${totalRegistros}`, 20, 70);
         doc.text(`• Total de Camisetas: ${totalCamisetas}`, 20, 80);
         doc.text(`• Tamanho Mais Comum: ${tamanhoMaisComum}`, 20, 90);
@@ -825,7 +838,7 @@ function downloadPDF() {
                 textColor: [255, 255, 255],
                 fontStyle: 'bold',
                 fontSize: 10,
-                halign: 'center' // Centraliza os títulos do cabeçalho
+                halign: 'center'
             },
             bodyStyles: {
                 fontSize: 9,
@@ -836,11 +849,11 @@ function downloadPDF() {
             },
             margin: { left: 20, right: 20 },
             columnStyles: {
-                0: { width: 20, halign: 'center' }, // Nº
-                1: { width: 70, halign: 'center' }, // Nome (corrigido)
-                2: { width: 20, halign: 'center' }, // Qtd
-                3: { width: 40, halign: 'center' }, // Tamanho
-                4: { width: 30, halign: 'center' }  // Data Cadastro
+                0: { width: 20, halign: 'center' },
+                1: { width: 70, halign: 'center' },
+                2: { width: 20, halign: 'center' },
+                3: { width: 40, halign: 'center' },
+                4: { width: 30, halign: 'center' }
             }
         });
         
@@ -859,6 +872,8 @@ function downloadPDF() {
     } catch (error) {
         console.error('Erro ao gerar PDF:', error);
         showNotification('Erro ao gerar relatório PDF', 'error');
+    } finally {
+        showLoading(false);
     }
 }
 
@@ -866,7 +881,7 @@ function downloadPDF() {
 // INICIALIZAÇÃO
 // =================================================
 
-// Event listeners
+// SUBSTITUIR o event listener do downloadPdfBtn por:
 document.addEventListener('DOMContentLoaded', function() {
     // Inicializar galeria
     initGallery();
@@ -874,7 +889,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // Event listeners do formulário
     form.addEventListener('submit', salvarCamiseta);
     cancelBtn.addEventListener('click', cancelarEdicao);
-    downloadPdfBtn.addEventListener('click', downloadPDF);
+    downloadPdfBtn.addEventListener('click', async () => {
+        await downloadPDF(); // Tornar assíncrona
+    });
     
     // Carregar dados iniciais
     carregarCamisetas();
