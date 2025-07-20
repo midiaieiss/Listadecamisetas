@@ -1,0 +1,30 @@
+
+# Node.js / Vite / React
+node_modules/
+dist/
+build/
+
+# Ambiente e dados sensíveis
+.env
+.env.local
+.env.production
+.env.development
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Editor / IDE
+.vscode/
+.idea/
+
+# Backup temporário
+*.bak
+*.tmp

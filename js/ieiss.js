@@ -805,7 +805,6 @@ function downloadPDF() {
         doc.text(`• Total de Registros: ${totalRegistros}`, 20, 70);
         doc.text(`• Total de Camisetas: ${totalCamisetas}`, 20, 80);
         doc.text(`• Tamanho Mais Comum: ${tamanhoMaisComum}`, 20, 90);
-
         
         // Tabela
         const tableData = camisetas.map((camiseta, index) => [
