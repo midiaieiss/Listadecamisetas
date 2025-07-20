@@ -739,42 +739,73 @@ function downloadPDF() {
         const primaryGreen = [26, 76, 26];
         const accentYellow = [255, 221, 0];
         
-        // Cabeçalho
+        // Cabeçalho do PDF
         doc.setFillColor(...primaryGreen);
-        doc.rect(0, 0, 210, 40, 'F');
-        
+        doc.rect(0, 0, 210, 55, 'F'); // Altura aumentada para caber logo + texto
+
+        const imgElement = document.getElementById('logo-igreja-pdf');
+
+        if (imgElement && imgElement.complete && imgElement.naturalWidth > 0) {
+            try {
+                const canvas = document.createElement('canvas');
+                canvas.width = imgElement.naturalWidth;
+                canvas.height = imgElement.naturalHeight;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(imgElement, 0, 0);
+
+                const logoBase64 = canvas.toDataURL('image/png');
+
+                // Logo centralizada
+                const logoWidth = 25;
+                const logoHeight = 25;
+                const logoX = (210 - logoWidth) / 2;
+                const logoY = 5;
+
+                doc.addImage(logoBase64, 'PNG', logoX, logoY, logoWidth, logoHeight);
+            } catch (err) {
+                console.warn('Erro ao processar a logo:', err);
+            }
+        }
+
+        // Título e subtítulo
         doc.setTextColor(255, 221, 0);
-        doc.setFontSize(18);
+        doc.setFontSize(16);
         doc.setFont('helvetica', 'bold');
-        doc.text('Igreja Evangélica Internacional Semente Santa', 105, 15, { align: 'center' });
-        
-        doc.setFontSize(14);
-        doc.text('Lista de Camisetas Cadastradas - 2025', 105, 25, { align: 'center' });
-        
+        doc.text('Igreja Evangélica Internacional Semente Santa', 105, 35, { align: 'center' });
+
+        doc.setFontSize(12);
+        doc.text('Lista das camisetas cadastradas - 2025', 105, 43, { align: 'center' });
+
         doc.setFontSize(10);
-        doc.text(`Relatório gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 105, 35, { align: 'center' });
-        
-        // Estatísticas
+        doc.text(`Relatório gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 105, 50, { align: 'center' });
+
+        // ==========================
+        // Estatísticas calculadas corretamente
+        // ==========================
         doc.setTextColor(...primaryGreen);
         doc.setFontSize(12);
         doc.setFont('helvetica', 'bold');
-        doc.text('RESUMO:', 20, 55);
-        
+        doc.text('RESUMO:', 20, 60);
+
         doc.setFont('helvetica', 'normal');
+
         const totalRegistros = camisetas.length;
         const totalCamisetas = camisetas.reduce((sum, item) => sum + item.quantidade, 0);
-        
-        // Calcular tamanho mais comum
+
+        // Calcular tamanho mais comum corretamente
         const tamanhos = {};
         camisetas.forEach(item => {
             tamanhos[item.tamanho] = (tamanhos[item.tamanho] || 0) + item.quantidade;
         });
+
         const tamanhoMaisComum = Object.keys(tamanhos).reduce((a, b) => 
             tamanhos[a] > tamanhos[b] ? a : b, '-');
-        
-        doc.text(`• Total de Registros: ${totalRegistros}`, 20, 65);
-        doc.text(`• Total de Camisetas: ${totalCamisetas}`, 20, 75);
-        doc.text(`• Tamanho Mais Comum: ${tamanhoMaisComum}`, 20, 85);
+
+        // Texto das estatísticas no PDF
+        doc.text(`• Total de Registros: ${totalRegistros}`, 20, 70);
+        doc.text(`• Total de Camisetas: ${totalCamisetas}`, 20, 80);
+        doc.text(`• Tamanho Mais Comum: ${tamanhoMaisComum}`, 20, 90);
+
         
         // Tabela
         const tableData = camisetas.map((camiseta, index) => [
@@ -794,7 +825,8 @@ function downloadPDF() {
                 fillColor: primaryGreen,
                 textColor: [255, 255, 255],
                 fontStyle: 'bold',
-                fontSize: 10
+                fontSize: 10,
+                halign: 'center' // Centraliza os títulos do cabeçalho
             },
             bodyStyles: {
                 fontSize: 9,
@@ -805,11 +837,11 @@ function downloadPDF() {
             },
             margin: { left: 20, right: 20 },
             columnStyles: {
-                0: { width: 20, halign: 'center' },
-                1: { width: 70 },
-                2: { width: 20, halign: 'center' },
-                3: { width: 40, halign: 'center' },
-                4: { width: 30, halign: 'center' }
+                0: { width: 20, halign: 'center' }, // Nº
+                1: { width: 70, halign: 'center' }, // Nome (corrigido)
+                2: { width: 20, halign: 'center' }, // Qtd
+                3: { width: 40, halign: 'center' }, // Tamanho
+                4: { width: 30, halign: 'center' }  // Data Cadastro
             }
         });
         
@@ -817,7 +849,7 @@ function downloadPDF() {
         const pageHeight = doc.internal.pageSize.height;
         doc.setFontSize(8);
         doc.setTextColor(128, 128, 128);
-        doc.text('Sistema de Cadastro de Camisetas - Igreja EISS 2025', 105, pageHeight - 10, { align: 'center' });
+        doc.text('Sistema de cadastro de camisetas - Igreja EISS 2025', 105, pageHeight - 10, { align: 'center' });
         
         // Salvar arquivo
         const fileName = `camisetas_ieiss_${new Date().toISOString().split('T')[0]}.pdf`;

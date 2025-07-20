@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Cadastro de Camisetas - Igreja EISS 2025</title>
+    <title>Sistema de cadastro de camisetas - Igreja EISS 2025</title>
     <link rel="stylesheet" href="css/ieiss.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -16,6 +16,7 @@
             <div class="logo-container">
                 <img src="imagens/logo-igreja.png" alt="Logo da Igreja" class="logo">
                 <div class="church-name">Igreja Evangélica Internacional Semente Santa</div>
+                <img src="imagens/logo-igreja.png" alt="Logo da Igreja" id="logo-igreja-pdf" style="width: 0; height: 0; opacity: 0; position: absolute;">
             </div>
         </div>
     </nav>
@@ -55,7 +56,7 @@
 
     <div class="container">
         <div class="header">
-            <h1>Sistema de Cadastro de Camisetas</h1>
+            <h1>Sistema de cadastro de camisetas</h1>
             <p>Igreja EISS - 2025</p>
         </div>
 
@@ -64,21 +65,21 @@
             <div class="stats">
                 <div class="stat-card">
                     <div class="stat-number" id="totalRegistros">0</div>
-                    <div class="stat-label">Total de Registros</div>
+                    <div class="stat-label">Total de registros</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="totalCamisetas">0</div>
-                    <div class="stat-label">Total de Camisetas</div>
+                    <div class="stat-label">Total de camisetas</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-number" id="tamanhoMaisComum">-</div>
-                    <div class="stat-label">Tamanho mais Comum</div>
+                    <div class="stat-label">Tamanho mais comum</div>
                 </div>
             </div>
 
             <!-- Formulário de Cadastro -->
             <div class="form-section">
-                <h2 id="formTitle">Cadastrar Nova Camiseta</h2>
+                <h2 id="formTitle">Cadastrar nova camiseta</h2>
                 <form id="camisetaForm">
                     <div class="form-grid">
                         <div class="form-group">
@@ -123,7 +124,7 @@
             <!-- Tabela de Camisetas -->
             <div class="table-section">
                 <div class="table-header">
-                    <h2>Lista de Camisetas Cadastradas</h2>
+                    <h2>Lista das camisetas cadastradas</h2>
                     <div class="download-buttons">
                         <button class="btn btn-success" id="downloadPdfBtn">
                             📄 Baixar PDF
